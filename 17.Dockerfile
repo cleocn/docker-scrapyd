@@ -1,8 +1,8 @@
-FROM ubuntu:16.04
+FROM ubuntu:17.10
 
 MAINTAINER "liu jx" cleocn@qq.com
 
-ADD sources.list /etc/apt/sources.list 
+ADD 17.10.sources.list /etc/apt/sources.list 
 
 RUN rm -rf /var/lib/apt/lists/ \
   && apt-get update \
@@ -18,8 +18,6 @@ RUN rm -rf /var/lib/apt/lists/ \
 	zlib1g-dev \
 	libffi-dev \
 	libssl-dev \
-  wget \
-  unzip \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/
 
@@ -29,30 +27,26 @@ RUN pip install --upgrade pip setuptools -i https://mirrors.aliyun.com/pypi/simp
     mysql-connector-python \
     numpy \
     selenium \
-    -i https://mirrors.aliyun.com/pypi/simple/  
+    -i https://mirrors.aliyun.com/pypi/simple/  \
+  && mkdir -p /usr/share/icons/hicolor
 
 ADD http://npm.taobao.org/mirrors/chromedriver/2.34/chromedriver_linux64.zip /usr/local/bin/
-WORKDIR /usr/local/bin/
-RUN unzip chromedriver_linux64.zip \
-  && rm -f chromedriver_linux64.zip
 
-# Plan A 
 # ADD https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb /home
-# # ADD google-chrome-stable_current_amd64.deb /home
-# RUN dpkg -i --force-depends /home/google-chrome-stable_current_amd64.deb || true \
-#   && apt-get install -f -y \
+# ADD google-chrome-stable_current_amd64.deb /home
+#|| true
+# RUN dpkg -i --force-depends /home/google-chrome-stable_current_amd64.deb 
+# RUN apt-get install -f \
 #   && rm -f /home/google-chrome-stable_current_amd64.deb \
 #   && apt-get clean \
 #   && rm -rf /var/lib/apt/lists/
-
-# Plan B
-RUN  wget -q -O - http://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add - \
-  && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-  && apt-get update \
-  && apt-get install -y --no-install-recommends google-chrome-stable \
-  && rm -f /etc/apt/sources.list.d/google.list \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/
+RUN  apt-get update \
+  && apt-get -f install \
+  # && apt-get install -y --no-install-recommends wget \
+  # && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add - \
+  # && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+  # && apt-get update \
+  && apt-get install -y --no-install-recommends google-chrome-stable
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
