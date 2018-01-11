@@ -25,7 +25,7 @@ RUN rm -rf /var/lib/apt/lists/ \
 
 RUN pip install --upgrade pip setuptools -i https://mirrors.aliyun.com/pypi/simple/ \
   && pip install --upgrade \
-    scrapyd \
+    git+https://github.com/cleocn/scrapyd.git@master \
     mysql-connector-python \
     numpy \
     selenium \
@@ -48,8 +48,12 @@ RUN unzip chromedriver_linux64.zip \
 # Plan B
 RUN  wget -q -O - http://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add - \
   && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+  && mkdir -p ~/.pip/ \
+  && sh -c 'echo "[global] \
+index-url = https://mirrors.aliyun.com/pypi/simple/" >> ~/.pip/pip.conf' \
   && apt-get update \
   && apt-get install -y --no-install-recommends google-chrome-stable \
+    tzdata \
   && rm -f /etc/apt/sources.list.d/google.list \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/
@@ -64,6 +68,11 @@ RUN mkdir -p /var/log/supervisor \
 RUN mkdir -p /etc/scrapyd/ /var/lib/scrapyd/{eggs,dbs,logs,items}
 
 COPY scrapyd.conf /etc/scrapyd/scrapyd.conf
+
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+ENV LANG="zh_CN.UTF-8" 
+RUN echo "export LC_ALL=zh_CN.UTF-8"  >>  /etc/profile
 
 EXPOSE 6800
 
